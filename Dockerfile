@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim
+FROM python:3.12-bookworm
 # Установка необходимых системных зависимостей
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    build-essential \
     calibre \
     && \
     rm -rf /var/lib/apt/lists/* && \
