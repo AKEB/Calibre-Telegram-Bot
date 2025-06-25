@@ -38,12 +38,15 @@ def get_stats() -> dict:
         if tags_count:
             stat['categories'] = int(tags_count[0])
 
-        cursor.execute("SELECT L.lang_code, COUNT(B.*) FROM books_languages_link as B JOIN languages as L ON B.lang_code=L.id GROUP BY B.lang_code")
+        cursor.execute("""SELECT L.lang_code, COUNT(*)
+                       FROM books_languages_link as B
+                       JOIN languages as L ON B.lang_code=L.id
+                       GROUP BY B.lang_code""")
         languages_count = cursor.fetchall()
         if languages_count:
             stat['languages'] = {lang[0]: int(lang[1]) for lang in languages_count}
 
-        cursor.execute("SELECT format,COUNT(*) FROM data GROUP BY format")
+        cursor.execute("SELECT format, COUNT(*) FROM data GROUP BY format")
         formats_count = cursor.fetchall()
         if formats_count:
             stat['formats'] = {format[0]: int(format[1]) for format in formats_count}
