@@ -1,0 +1,8 @@
+python-telegram-bot
+requests
+lxml
+python-dotenv
+urllib3
+pylint
+pytest
+pytest-asyncio
