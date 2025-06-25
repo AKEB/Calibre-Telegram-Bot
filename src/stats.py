@@ -12,7 +12,7 @@ def get_stats() -> dict:
         authors=0,
         series=0,
         categories=0,
-        languages=dict(),
+        languages=0,
         formats=dict()
     )
     try:
@@ -38,13 +38,10 @@ def get_stats() -> dict:
         if tags_count:
             stat['categories'] = int(tags_count[0])
 
-        cursor.execute("""SELECT L.lang_code, COUNT(*)
-                       FROM books_languages_link as B
-                       JOIN languages as L ON B.lang_code=L.id
-                       GROUP BY B.lang_code""")
-        languages_count = cursor.fetchall()
-        if languages_count:
-            stat['languages'] = {lang[0]: int(lang[1]) for lang in languages_count}
+        cursor.execute("SELECT COUNT(*) FROM languages")
+        language_count = cursor.fetchone()
+        if language_count:
+            stat['languages'] = int(language_count[0])
 
         cursor.execute("SELECT format, COUNT(*) FROM data GROUP BY format")
         formats_count = cursor.fetchall()
@@ -77,14 +74,9 @@ def get_stats_message() -> str|None:
             f"✍️ Авторов: {stats.get('authors', 0):,}\n"
             f"🏷️ Категорий: {stats.get('categories', 0):,}\n"
             f"📖 Серий: {stats.get('series', 0):,}\n"
+            f"🌐 Языков: {stats.get('languages', 0):,}\n"
         ).replace(',', ' ')
-        # Подробная статистика по языкам
-        message += f"\n🌐 Языков: {len(stats.get('languages', {})):,}\n"
-        if stats.get('languages'):
-            for lang, count in stats['languages'].items():
-                message += f"\t\t\t  - {lang}: {count:,}\n".replace(',', ' ')
-
-        message += f"\n📁 Форматов: {len(stats.get('formats', {})):,}\n"
+        message += f"📁 Форматов: {len(stats.get('formats', {})):,}\n"
         # Подробная статистика по форматам
         if stats.get('formats'):
             for fmt, count in stats['formats'].items():
