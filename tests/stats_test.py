@@ -23,9 +23,9 @@ class TestStats(unittest.TestCase):
             (5,),   # authors
             (2,),   # series
             (3,),   # categories
+            (4,),   # languages
         ]
         mock_cursor.fetchall.side_effect = [
-            [('ru', 7), ('en', 3)],  # languages
             [('EPUB', 8), ('FB2', 2)]  # formats
         ]
         mock_conn = MagicMock()
@@ -37,7 +37,7 @@ class TestStats(unittest.TestCase):
         self.assertEqual(result['authors'], 5)
         self.assertEqual(result['series'], 2)
         self.assertEqual(result['categories'], 3)
-        self.assertEqual(result['languages'], {'ru': 7, 'en': 3})
+        self.assertEqual(result['languages'], 4)
         self.assertEqual(result['formats'], {'EPUB': 8, 'FB2': 2})
 
     @patch('stats.logger')
@@ -69,7 +69,7 @@ class TestStats(unittest.TestCase):
             'authors': 2,
             'series': 1,
             'categories': 3,
-            'languages': {'ru': 7},
+            'languages': 4,
             'formats': {'EPUB': 8}
         }
         result = stats.get_stats_message()
@@ -77,8 +77,7 @@ class TestStats(unittest.TestCase):
         self.assertIn('Авторов: 2', result)
         self.assertIn('Категорий: 3', result)
         self.assertIn('Серий: 1', result)
-        self.assertIn('Языков: 1', result)
-        self.assertIn('- ru: 7', result)
+        self.assertIn('Языков: 4', result)
         self.assertIn('Форматов: 1', result)
         self.assertIn('- EPUB: 8', result)
         self.assertIn('в очереди: 5', result)
