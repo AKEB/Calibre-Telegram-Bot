@@ -2,7 +2,10 @@
 FROM ghcr.io/linuxserver/calibre:latest
 
 # Установка необходимых системных зависимостей
-RUN mkdir -p /app/src && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 python3-pip python3.12-venv && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /app/src && \
     mkdir -p /app/tests && \
     mkdir -p /app/config && \
     touch /app/config/authorized_users.txt
@@ -12,6 +15,9 @@ WORKDIR /app
 # Переменные окружения
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=./
+
+RUN python3 -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
 
 # Копировать исходники и requirements
 COPY ./requirements.txt ./
