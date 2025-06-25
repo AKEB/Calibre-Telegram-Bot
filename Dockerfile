@@ -1,23 +1,8 @@
-# syntax=docker/dockerfile:1
-FROM python:3.12-bookworm
+
+FROM ghcr.io/linuxserver/calibre:latest
+
 # Установка необходимых системных зависимостей
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    libxml2-dev \
-    libxslt1-dev \
-    libffi-dev \
-    libbz2-dev \
-    liblzma-dev \
-    libzstd-dev \
-    libjpeg-dev \
-    libpng-dev \
-    wget \
-    calibre \
-    && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /app/src && \
+RUN mkdir -p /app/src && \
     mkdir -p /app/tests && \
     mkdir -p /app/config && \
     touch /app/config/authorized_users.txt
