@@ -33,4 +33,5 @@ COPY ./tests /app/tests/
 RUN pytest -v /app/tests/
 
 # Запуск бота
+ENTRYPOINT []
 CMD ["python", "/app/src/main.py"]
