@@ -42,4 +42,4 @@ jobs:
         --push \
         --tag akeb/calibre-telegram-bot:latest \
         --tag akeb/calibre-telegram-bot:${{ env.TAG_VERSION }} \
-        --platform linux/amd64,linux/arm64 ./
+        --platform linux/amd64 ./
