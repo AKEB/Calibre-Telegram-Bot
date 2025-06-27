@@ -1,0 +1,133 @@
+start: |
+  📚 Welcome to the Calibre Library!
+
+  You can search for books by:
+  - Title (/title <title>)
+  - Author (/author <author>)
+  - Series (/series <series>)
+  - Any keyword (/search <query>) or just <query>
+
+  Other available commands:
+  - /random - shows {RANDOM_BOOKS_COUNT} random books from the library
+  - Search by book ID (/id <id>) - the ID can be found in the book message
+  - Upload a book to the server (/upload) - send a book file or specify a URL
+  - Library statistics (/stats) - shows the number of books, authors, etc.
+
+  Admin commands:
+  - Add a user to authorized (/add <user_id>) - for access management
+
+  For help, use the /help command
+
+  📖 The library contains many books in different formats (EPUB, FB2, MOBI, etc.).
+  You can download books in your preferred format.
+
+  If you have questions or suggestions, contact the administrator.
+
+  To start searching for books, use the /search command or just enter a query.
+
+  Example: /search Harry Potter
+
+  You can also just enter a text query without a command, and the bot will try to find books by your query.
+
+  Advanced search examples:
+  - title:Harry Potter - search by title
+  - title:=Harry Potter - exact title search
+  - author:J.K. Rowling - search by author
+  - author:=J.K. Rowling - exact author search
+  - series:Harry Potter - search by series
+  - series:=Harry Potter - exact series search
+  - tags:fantasy - search by tags
+  - tags:=fantasy - exact tag search
+  - publisher:Bloomsbury - search by publisher
+  - publisher:=Bloomsbury - exact publisher search
+  - languages:english - search by language
+  - languages:=english - exact language search
+  - formats:fb2 - search by format
+  - formats:=fb2 - exact format search
+
+  You can also combine commands:
+  - title:Harry Potter and author:J.K. Rowling - search by title and author
+access_denied: |
+  ⛔ Access denied
+  Please contact the administrator for access
+  Your ID={user_id}
+admin_only: "⛔ You do not have permission to execute this command."
+cancelled: "Cancelled."
+empty_value: "Please enter a non-empty value"
+add_usage: "Usage: /add <user_id>"
+add_id_number: "User ID must be a number"
+already_authorized: "User {user_id} is already authorized"
+add_success: "✅ User {user_id} successfully added"
+add_error: "An error occurred while adding the user"
+operation_cancelled: "Operation cancelled."
+error_occurred: "😞 An error occurred. Please try again."
+stats_error: "Failed to get statistics. Please try again later."
+language_select: "Выберите язык / Select language:"
+lang_set_ru: "Язык успешно изменён на Русский 🇷🇺"
+lang_set_en: "Language successfully set to English 🇬🇧"
+lang_set_unknown: "Unknown selection / Неизвестный выбор"
+prompt_search: "🔍 Enter a search query (title, author, or keywords):"
+prompt_series: "📚 Enter the series name to search:"
+prompt_title: "📖 Enter the book title to search:"
+prompt_author: "✍️ Enter the author's name to search:"
+prompt_id: "#️⃣ Enter the book ID to search:"
+prompt_upload: "📤 Send a book file (EPUB, FB2, MOBI, etc.) or specify the book URL after the /upload command"
+prepare_format: "⏳ Preparing the book in {fmt} format..."
+file_too_large: "⚠️ File is too large. Maximum size: {max_mb}MB"
+unsupported_format: "⚠️ Unsupported file format. Allowed formats: {formats}"
+telegram_error: "⚠️ Telegram error: {error}"
+fs_error: "⚠️ Filesystem error: {error}"
+url_error: "⚠️ Error downloading by URL: {error}"
+add_success_calibre: "✅ Book successfully added to the library! ID: {book_id}"
+add_success_calibre_noid: |
+  ✅ Book successfully added to the library!
+  {stdout}
+add_error_calibre: |
+  ⚠️ Error adding book:
+  {error}
+timeout_calibre: "⚠️ Book adding timeout exceeded"
+nothing_found: "😞 Nothing found. Try another query."
+book_card: |
+  📚 Selected: <b>{title}</b>
+  ✍️ Author: {author}
+  📖 Series: {series} [{series_index}]
+  {publisher_block}ID: {id}
+  Genre: {tags}
+  Description: <blockquote>{desc}</blockquote>
+
+  {download_block}
+book_download_block: |
+  Choose a format to download:
+  ✅ - available immediately
+  🔄 - will be converted from available format
+publisher: "Publisher: {publisher}"
+btn_back: "⬅️ Back"
+btn_cancel: "❌ Cancel"
+prepare_failed: "😞 Failed to prepare the book. Try another format."
+send_success: "✅ Book sent in {fmt} format!"
+send_error: "😞 An error occurred while sending the file."
+btn_next: "Next ➡️"
+search_found: |
+  🔍 Found {total} books. Page {page}/{pages}
+
+  {books}
+  Select a book or go to another page:
+search_id: "ID: {id}"
+search_publisher: "{publisher}"
+search_size: "({size})"
+search_series: "📖 {series} [{series_index}]"
+search_genre: "Genre: {tags}"
+stats_header: |
+  📊 Library statistics:
+
+stats_books: "📚 Books: {books}\n"
+stats_authors: "✍️ Authors: {authors}\n"
+stats_categories: "🏷️ Categories: {categories}\n"
+stats_series: "📖 Series: {series}\n"
+stats_languages: "🌐 Languages: {languages}\n"
+stats_formats: "📁 Formats: {formats}\n"
+stats_format_row: "    - {fmt}: {count}\n"
+stats_import_header: |
+  📥 Book import:
+stats_import_queue: "    - in queue: {count}\n"
+stats_import_error: "    - errors: {count}\n"

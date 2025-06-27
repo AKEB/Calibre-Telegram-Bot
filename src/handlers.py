@@ -502,7 +502,8 @@ async def request_parameter(update: Update, context: CallbackContext, prompt: st
     """Запрашивает у пользователя недостающий параметр"""
     logger.debug("request_parameter() start")
     keyboard = []
-    keyboard.append([InlineKeyboardButton("❌ Отмена", callback_data="cancel")])
+    lang = auth.get_language(update.effective_user.id)
+    keyboard.append([InlineKeyboardButton(get_text("btn_cancel", lang), callback_data="cancel")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     await (update.message if update.message else update.edited_message
            ).reply_text(prompt, reply_markup=reply_markup)

@@ -16,11 +16,16 @@
 	"предпросмотра",
 	"сконвертирован",
 	"человекочитаемый",
+	"asyncio",
 	"bookname",
 	"dotenv",
+	"EPUB",
 	"levelname",
+	"lxml",
 	"mobi",
-	"noid"
+	"noid",
+	"pylint",
+	"urllib"
 ],
 
   "python.testing.pytestEnabled": true,

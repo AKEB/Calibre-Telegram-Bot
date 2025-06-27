@@ -6,3 +6,4 @@ urllib3
 pylint
 pytest
 pytest-asyncio
+PyYAML
