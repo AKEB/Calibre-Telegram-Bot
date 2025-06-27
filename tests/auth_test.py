@@ -21,7 +21,7 @@ class TestAuth(unittest.TestCase):
         m = mock_open(read_data='123\n456\n')
         with patch('builtins.open', m), patch('os.path.exists', return_value=True):
             a = auth.Auth()
-            self.assertEqual(a.authorized_users, {'123', '456'})
+            self.assertEqual(a.authorized_users, {'123': 'ru', '456': 'ru'})
 
     @patch('auth.AUTHORIZED_USERS_FILE', 'test_users.txt')
     @patch('auth.logger')
@@ -29,13 +29,13 @@ class TestAuth(unittest.TestCase):
         """Test loading authorized users from a file that does not exist."""
         with patch('os.path.exists', return_value=False):
             a = auth.Auth()
-            self.assertEqual(a.authorized_users, set())
+            self.assertEqual(a.authorized_users, {})
 
     @patch('auth.logger')
     def test_is_authorized(self, mock_logger):
         """Test checking if a user is authorized."""
         a = auth.Auth()
-        a.authorized_users = {'1', '2'}
+        a.authorized_users = {'1': 'ru', '2': 'ru'}
         self.assertTrue(a.is_authorized('1'))
         self.assertFalse(a.is_authorized('3'))
 
@@ -53,11 +53,14 @@ class TestAuth(unittest.TestCase):
         """Test adding an authorized user successfully."""
         a = auth.Auth()
         with patch('builtins.open', mock_open()) as m, \
-             patch.object(a, 'load_authorized_users', return_value={'1', '2', '3'}):
+             patch.object(
+                 a, 'load_authorized_users',
+                 return_value={'1': 'ru', '2': 'ru', '3': 'ru'}
+            ):
             result = a.add_authorized_user('3')
             self.assertTrue(result)
-            m().write.assert_called_with('3\n')
-            self.assertEqual(a.authorized_users, {'1', '2', '3'})
+            m().write.assert_called_with('3,ru\n')
+            self.assertEqual(a.authorized_users, {'1': 'ru', '2': 'ru', '3': 'ru'})
 
     @patch('auth.AUTHORIZED_USERS_FILE', 'test_users.txt')
     @patch('auth.logger')

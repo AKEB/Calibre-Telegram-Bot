@@ -40,7 +40,9 @@ class TestMain(unittest.TestCase):
     @patch('main.print_config')
     @patch('main.check_db_permissions', return_value=False)
     @patch('main.check_config', return_value=True)
-    def test_main_fail(self, mock_check_config, mock_check_db_permissions, mock_print_config, mock_logger):
+    def test_main_fail(
+        self, mock_check_config, mock_check_db_permissions, mock_print_config, mock_logger
+    ):
         with self.assertRaises(SystemExit):
             main.main()
         mock_logger.critical.assert_called()

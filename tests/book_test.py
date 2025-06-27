@@ -29,7 +29,7 @@ class TestBookModule(unittest.TestCase):
     @patch('book.logger')
     def test_get_book_text_full(self, _mock_logger):
         """Test the get_book_text function with full book data."""
-        text = book.get_book_text(self.book_data.copy())
+        text = book.get_book_text(self.book_data.copy(), user_id='123')
         self.assertIn('Test Book', text)
         self.assertIn('Author Name', text)
         self.assertIn('Series Name', text)
@@ -45,7 +45,7 @@ class TestBookModule(unittest.TestCase):
         """Test the get_book_text function with missing fields."""
         book_data = {k: '' for k in self.book_data}
         book_data['title'] = 'No Fields'
-        text = book.get_book_text(book_data)
+        text = book.get_book_text(book_data, user_id='123')
         self.assertIn('No Fields', text)
         self.assertIn('✍️ Автор: ', text)
         self.assertIn('📖 Серия:  []', text)
@@ -58,16 +58,18 @@ class TestBookModule(unittest.TestCase):
     def test_book_selected_keyboard_and_text(self, _mock_logger, mock_get_formats):
         """Test the book_selected function with available formats."""
         mock_get_formats.return_value = ['epub', 'fb2']
-        reply_markup, text = book.book_selected(self.book_data.copy())
+        user_id = '123'
+        reply_markup, text = book.book_selected(self.book_data.copy(), user_id)
         # Исправлено: выводим кнопки для отладки
         buttons = [btn for row in reply_markup.inline_keyboard for btn in row]
         button_texts = [btn.text for btn in buttons]
-        print('button_texts:', button_texts)
+        from texts import get_text
+        lang = 'ru'  # тестируем на русском
         self.assertTrue(any('EPUB' in t and '✅' in t for t in button_texts))
         self.assertTrue(any('FB2' in t and '✅' in t for t in button_texts))
         self.assertTrue(any('MOBI' in t and '🔄' in t for t in button_texts))
-        self.assertTrue(any('⬅️ Назад' in t for t in button_texts))
-        self.assertTrue(any('❌ Отмена' in t for t in button_texts))
+        self.assertTrue(any(get_text('btn_back', lang) in t for t in button_texts))
+        self.assertTrue(any(get_text('btn_cancel', lang) in t for t in button_texts))
         self.assertIn('Test Book', text)
 
 if __name__ == '__main__':

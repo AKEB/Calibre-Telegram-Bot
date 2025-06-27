@@ -2,6 +2,7 @@
 # pylint: disable=W0613
 # pylint: disable=C0413
 # pylint: disable=E0401
+# pylint: disable=I1101
 """Test cases for the config module.
 This module contains unit tests for the configuration settings and constants.
 It uses unittest framework and mocks external dependencies."""

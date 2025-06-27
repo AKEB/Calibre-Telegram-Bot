@@ -47,7 +47,7 @@ class TestSearch(unittest.TestCase):
                 'tags': 'tag'
             }
         ]
-        text = search.get_books_list_text(books, 0)
+        text = search.get_books_list_text(books, 0, lang='ru')
         self.assertIn('Book1', text)
         self.assertIn('Book2', text)
         self.assertIn('Author1', text)
