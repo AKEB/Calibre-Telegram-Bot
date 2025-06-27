@@ -6,6 +6,10 @@ import subprocess
 from telegram.ext import CallbackContext
 from config import logger
 from config import CALIBRE_DB, BOOKS_DIR
+from texts import get_text
+from auth import Auth
+
+auth = Auth()
 
 def get_book_path(book_id, file_format='epub'):
     """Получение пути к файлу книги"""
@@ -60,19 +64,21 @@ def convert_book(input_path, output_format):
         logger.error("Ошибка конвертации: %s", str(e))
         return None
 
-async def format_selected(book: dict, selected_format: str, context: CallbackContext, chat_id:int):
+async def format_selected(
+        book: dict, selected_format: str,
+        context: CallbackContext, chat_id: int, user_id: int
+    ):
     """format_selected"""
     logger.debug("format_selected() start")
     book_path = get_book_path(book['id'], selected_format)
+    lang = auth.get_language(user_id)
     if not book_path or not book_path.endswith(f".{selected_format}"):
         formats = get_book_formats(book['id'])
         if formats:
             original_path = get_book_path(book['id'], formats[0])
             book_path = convert_book(original_path, selected_format)
-
     if not book_path:
-        return "😞 Не удалось подготовить книгу. Попробуйте другой формат."
-
+        return get_text("prepare_failed", lang)
     try:
         with open(book_path, 'rb') as f:
             await context.bot.send_document(
@@ -81,7 +87,7 @@ async def format_selected(book: dict, selected_format: str, context: CallbackCon
                 filename=f"{book['title']}.{selected_format}",
                 caption=f"📚 {book['title']}\n✍️ {book['author']}"
             )
-        return f"✅ Книга отправлена в формате {selected_format.upper()}!"
+        return get_text("send_success", lang, fmt=selected_format.upper())
     except (OSError, IOError) as e:
         logger.error("Ошибка отправки файла: %s", str(e))
-        return "😞 Произошла ошибка при отправке файла."
+        return get_text("send_error", lang)

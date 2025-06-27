@@ -14,6 +14,10 @@ from config import (
     CALIBRE_LIBRARY_URL, CALIBRE_LIBRARY_USER,
     CALIBRE_LIBRARY_PASS
 )
+from texts import get_text
+from auth import Auth
+
+auth = Auth()
 
 async def handle_document_upload(update: Update, context: CallbackContext) -> None:
     """Обработка загрузки книги из документа"""
@@ -22,7 +26,10 @@ async def handle_document_upload(update: Update, context: CallbackContext) -> No
 
     if document.file_size > MAX_UPLOAD_SIZE:
         await (update.message if update.message else update.edited_message).reply_text(
-            f"⚠️ Файл слишком большой. Максимальный размер: {MAX_UPLOAD_SIZE//1024//1024}MB"
+            get_text(
+                "file_too_large",
+                auth.get_language(update.effective_user.id), max_mb=MAX_UPLOAD_SIZE//1024//1024
+            )
         )
         return
 
@@ -31,7 +38,10 @@ async def handle_document_upload(update: Update, context: CallbackContext) -> No
     file_ext = document.file_name.split('.')[-1].lower() if document.file_name else ''
     if file_ext not in valid_formats:
         await (update.message if update.message else update.edited_message).reply_text(
-            f"⚠️ Неподдерживаемый формат файла. Допустимые форматы: {', '.join(valid_formats)}"
+            get_text(
+                "unsupported_format",
+                auth.get_language(update.effective_user.id), formats=', '.join(valid_formats)
+            )
         )
         return
 
@@ -55,11 +65,18 @@ async def handle_document_upload(update: Update, context: CallbackContext) -> No
     except TelegramError as e:
         logger.error("Ошибка Telegram при загрузке книги: %s", str(e))
         await (update.message if update.message else update.edited_message
-               ).reply_text(f"⚠️ Ошибка Telegram: {str(e)}")
+              ).reply_text(
+                  get_text(
+                      "telegram_error",
+                      auth.get_language(update.effective_user.id), error=str(e)
+                  )
+              )
     except (OSError, IOError) as e:
         logger.error("Ошибка файловой системы при загрузке книги: %s", str(e))
         await (update.message if update.message else update.edited_message
-               ).reply_text(f"⚠️ Ошибка файловой системы: {str(e)}")
+               ).reply_text(
+                   get_text("fs_error", auth.get_language(update.effective_user.id), error=str(e))
+                )
     finally:
         # Удаляем временные файлы
         if 'local_path' in locals() and os.path.exists(local_path):
@@ -94,11 +111,20 @@ async def handle_url_upload(update: Update, context: CallbackContext, url: str) 
     except RequestException as e:
         logger.error("Ошибка при загрузке книги по URL: %s", str(e))
         await (update.message if update.message else update.edited_message
-               ).reply_text(f"⚠️ Ошибка при загрузке по URL: {str(e)}")
+               ).reply_text(
+                   get_text(
+                       "url_error",
+                       auth.get_language(update.effective_user.id), error=str(e)
+                   )
+               )
     except (OSError, IOError) as e:
         logger.error("Ошибка файловой системы при загрузке книги: %s", str(e))
         await (update.message if update.message else update.edited_message
-               ).reply_text(f"⚠️ Ошибка файловой системы: {str(e)}")
+               ).reply_text(
+                   get_text(
+                       "fs_error", auth.get_language(update.effective_user.id), error=str(e)
+                   )
+               )
     finally:
         # Удаляем временные файлы
         if 'local_path' in locals() and os.path.exists(local_path):
@@ -142,25 +168,39 @@ async def add_book_to_calibre(update: Update, context: CallbackContext, file_pat
                     break
 
             if book_id:
-                message = f"✅ Книга успешно добавлена в библиотеку! ID: {book_id}"
+                message = get_text(
+                    "add_success_calibre",
+                    auth.get_language(update.effective_user.id), book_id=book_id
+                )
             else:
-                message = "✅ Книга успешно добавлена в библиотеку!\n"
-                message += f"{result.stdout}"
-
+                message = get_text(
+                    "add_success_calibre_noid",
+                    auth.get_language(update.effective_user.id), stdout=result.stdout
+                )
             await (update.message if update.message else update.edited_message).reply_text(message)
         else:
             error_msg = result.stderr or "Неизвестная ошибка"
             await (update.message if update.message else update.edited_message
-                   ).reply_text(f"⚠️ Ошибка при добавлении книги:\n{error_msg}")
-
+                   ).reply_text(
+                       get_text(
+                           "add_error_calibre",
+                           auth.get_language(update.effective_user.id), error=error_msg
+                        )
+                    )
     except TimeoutExpired:
         await (update.message if update.message else update.edited_message
-               ).reply_text("⚠️ Превышено время ожидания добавления книги")
+               ).reply_text(get_text(
+                   "timeout_calibre", auth.get_language(update.effective_user.id)
+                ))
     except (SubprocessError, CalledProcessError) as e:
         logger.error("Ошибка subprocess при добавлении книги в Calibre: %s", str(e))
         await (update.message if update.message else update.edited_message
-               ).reply_text(f"⚠️ Ошибка при добавлении книги: {str(e)}")
+               ).reply_text(get_text(
+                   "add_error_calibre", auth.get_language(update.effective_user.id), error=str(e)
+                ))
     except (OSError, IOError) as e:
         logger.error("Ошибка файловой системы при добавлении книги: %s", str(e))
         await (update.message if update.message else update.edited_message
-               ).reply_text(f"⚠️ Ошибка файловой системы: {str(e)}")
+               ).reply_text(get_text(
+                   "fs_error", auth.get_language(update.effective_user.id), error=str(e)
+                ))

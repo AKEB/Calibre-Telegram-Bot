@@ -24,6 +24,7 @@ from reset import reset_last_command, reset_search
 from download import format_selected
 from search import perform_search
 from book import book_selected
+from texts import get_text
 
 auth = Auth()
 
@@ -35,24 +36,23 @@ def permission_required(is_admin: bool = False):
         async def wrapper(*args, **kwargs):
             update: Update = args[0]
             context: CallbackContext = args[1]
+            user_id = update.effective_user.id
+            lang = auth.get_language(user_id)
 
             await context.bot.send_chat_action(
                 chat_id=update.effective_chat.id,
                 action=ChatAction.TYPING
             )
 
-            if not is_admin and not auth.is_authorized(update.effective_user.id):
+            if not is_admin and not auth.is_authorized(user_id):
                 await (update.message if update.message else update.edited_message).reply_text(
-                    "⛔ Доступ запрещен\n" +
-                    "      Обратитесь к администратору для получения доступа\n" +
-                    f"      Ваш ID={update.effective_user.id}"
+                    get_text("access_denied", lang, user_id=user_id)
                 )
                 return reset_last_command(context)
 
-            # Только для администратора
-            if is_admin and not auth.is_admin(update.effective_user.id):
+            if is_admin and not auth.is_admin(user_id):
                 await (update.message if update.message else update.edited_message
-                       ).reply_text("⛔ У вас нет прав для выполнения этой команды.")
+                       ).reply_text(get_text("admin_only", lang))
                 return reset_last_command(context)
 
             return await fn(*args, **kwargs)
@@ -75,7 +75,9 @@ async def book_selected_handler(update: Update, context: CallbackContext) -> int
         return await pagination_handler(update, context)
 
     if query.data.startswith('cancel'):
-        await query.edit_message_text("Отменено.")
+        await query.edit_message_text(
+            get_text("cancelled", auth.get_language(update.effective_user.id))
+        )
         return reset_search(context)
 
     book_index = int(query.data.split('_')[1])
@@ -94,7 +96,7 @@ async def book_selected_handler(update: Update, context: CallbackContext) -> int
             url=cover_url
         )
 
-    reply_markup, text = book_selected(book)
+    reply_markup, text = book_selected(book, update.effective_user.id)
 
     await query.edit_message_text(
         text,
@@ -121,7 +123,9 @@ async def format_selected_handler(update: Update, context: CallbackContext) -> i
     await query.answer()
 
     if query.data == 'cancel':
-        await query.edit_message_text("Отменено.")
+        await query.edit_message_text(
+            get_text("cancelled", auth.get_language(update.effective_user.id))
+        )
         return reset_search(context)
 
     if query.data == 'back':
@@ -131,13 +135,18 @@ async def format_selected_handler(update: Update, context: CallbackContext) -> i
     book = context.user_data['selected_book']
 
     keyboard = []
+    lang = auth.get_language(update.effective_user.id)
     keyboard.append([
-        InlineKeyboardButton("⬅️ Назад", callback_data="back")
+        InlineKeyboardButton(get_text("btn_back", lang), callback_data="back")
     ])
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.edit_message_text(
-        text=f"⏳ Подготавливаю книгу в формате {selected_format.upper()}...",
+        text=get_text(
+            "prepare_format",
+            auth.get_language(update.effective_user.id),
+            fmt=selected_format.upper()
+        ),
         reply_markup=reply_markup,
     )
 
@@ -147,7 +156,9 @@ async def format_selected_handler(update: Update, context: CallbackContext) -> i
         action=ChatAction.UPLOAD_DOCUMENT
     )
 
-    message = await format_selected(book, selected_format, context, update.effective_chat.id)
+    message = await format_selected(
+        book, selected_format, context, update.effective_chat.id, update.effective_user.id
+    )
 
     await query.edit_message_text(
         text=message,
@@ -169,7 +180,9 @@ async def handle_parameter_response_handler(update: Update, context: CallbackCon
 
     param_value = message.text.strip() if message and message.text else ''
     if not param_value:
-        await message.reply_text("Пожалуйста, введите непустое значение")
+        await message.reply_text(
+            get_text("empty_value", auth.get_language(update.effective_user.id))
+        )
         return globals()[f"REQUEST_{context.user_data['current_command'].upper()}"]
 
     reset_last_command(context)
@@ -243,7 +256,7 @@ async def search_handler(update: Update, context: CallbackContext) -> int:
         return await request_parameter(
             update,
             context,
-            "🔍 Введите поисковый запрос (название, автор или ключевые слова):"
+            get_text("prompt_search", auth.get_language(update.effective_user.id))
         )
 
     query = (' '.join(context.args) if context.args
@@ -265,7 +278,7 @@ async def series_handler(update: Update, context: CallbackContext) -> int:
         return await request_parameter(
             update,
             context,
-            "📚 Введите название серии для поиска:"
+            get_text("prompt_series", auth.get_language(update.effective_user.id))
         )
 
     context.user_data['search_type'] = 'series'
@@ -286,7 +299,7 @@ async def title_handler(update: Update, context: CallbackContext) -> int:
         return await request_parameter(
             update,
             context,
-            "📖 Введите название книги для поиска:"
+            get_text("prompt_title", auth.get_language(update.effective_user.id))
         )
 
     context.user_data['search_type'] = 'title'
@@ -306,7 +319,7 @@ async def author_handler(update: Update, context: CallbackContext) -> int:
         return await request_parameter(
             update,
             context,
-            "✍️ Введите имя автора для поиска:"
+            get_text("prompt_author", auth.get_language(update.effective_user.id))
         )
 
     context.user_data['search_type'] = 'author'
@@ -339,7 +352,7 @@ async def id_handler(update: Update, context: CallbackContext) -> int:
         return await request_parameter(
             update,
             context,
-            "#️⃣ Введите ID книги для поиска:"
+            get_text("prompt_id", auth.get_language(update.effective_user.id))
         )
 
     context.user_data['search_type'] = 'id'
@@ -354,10 +367,10 @@ async def stats_handler(update: Update, context: CallbackContext) -> None:
     """Обработка команды /stats - возвращает статистику библиотеки"""
     logger.debug("stats_handler() start")
 
-    message = get_stats_message()
+    message = get_stats_message(auth.get_language(update.effective_user.id))
     if not message:
         await (update.message if update.message else update.edited_message
-               ).reply_text("Не удалось получить статистику. Попробуйте позже.")
+               ).reply_text(get_text("stats_error", auth.get_language(update.effective_user.id)))
     else:
         await (update.message if update.message else update.edited_message).reply_text(message)
 
@@ -368,57 +381,10 @@ async def start_handler(update: Update, context: CallbackContext) -> int:
     """Обработка команды /start"""
     logger.debug("start_handler() start")
     reset_last_command(context)
-
-    await (update.message if update.message else update.edited_message).reply_text(
-        "📚 Добро пожаловать в библиотеку Calibre!\n\n"
-
-        "Вы можете искать книги по:\n"
-        "- Названию (/title <название>)\n"
-        "- Автору (/author <автор>)\n"
-        "- Серии (/series <серия>)\n"
-        "- Любому ключевому слову (/search <запрос>) или просто <запрос>\n\n"
-
-        "Также доступны команды для:\n"
-        f"- /random - покажет {RANDOM_BOOKS_COUNT} случайных книг из библиотеки\n"
-        "- Поиску книги по ID (/id <идентификатор>) - идентификатор можно найти в сообщении о книге\n"
-        "- Загрузить книгу на сервер (/upload) - отправьте файл книги или укажите URL\n"
-        "- Статистика библиотеки (/stats) - покажет количество книг, авторов и т.д.\n\n"
-
-        "Команды для администраторов:\n"
-        "- Добавить пользователя в авторизованные (/add <user_id>) - для управления доступом\n\n"
-
-        "Для получения справки по командам используйте команду /help\n\n"
-
-        "📖 Библиотека содержит множество книг в разных форматах (EPUB, FB2, MOBI и т.д.).\n"
-        "Вы можете скачивать книги в удобном для вас формате.\n\n"
-        "Если у вас есть вопросы или предложения, обратитесь к администратору.\n\n"
-        "Для начала поиска книг используйте команду /search или просто введите запрос.\n\n"
-
-        "Пример: /search Гарри Поттер\n"
-
-        "Также вы можете просто ввести текстовый запрос без команды, и бот "
-        "попытается найти книги по этому запросу.\n\n"
-        "Доступны сложные поиски например:\n"
-        "- title:Гарри Поттер - поиск по названию\n"
-        "- title:=Гарри Поттер - поиск по точному названию\n"
-        "- author:Джоан Роулинг - поиск по автору\n"
-        "- author:=Джоан Роулинг - поиск по точному автору\n"
-        "- series:Гарри Поттер - поиск по серии\n"
-        "- series:=Гарри Поттер - поиск по точной серии\n"
-        "- tags:фэнтези - поиск по тегам\n"
-        "- tags:=фэнтези - поиск по точным тегам\n"
-        "- publisher:Bloomsbury - поиск по издателю\n"
-        "- publisher:=Bloomsbury - поиск по точному издателю\n"
-        "- languages:русский - поиск по языкам\n"
-        "- languages:=русский - поиск по точному языку\n"
-        "- formats:fb2 - поиск по формату\n"
-        "- formats:=fb2 - поиск по точному формату\n\n"
-
-        "А также доступны различные сочетания команд:\n"
-        "- title:Гарри Поттер and author:Джоан Роулинг - поиск по названию и автору\n"
-
-
-    )
+    user_id = update.effective_user.id
+    lang = auth.get_language(user_id)
+    text = get_text("start", lang, RANDOM_BOOKS_COUNT=RANDOM_BOOKS_COUNT)
+    await (update.message if update.message else update.edited_message).reply_text(text)
     return reset_search(context)
 
 
@@ -435,8 +401,7 @@ async def upload_book_handler(update: Update, context: CallbackContext) -> int:
         return await request_parameter(
             update,
             context,
-            "📤 Отправьте файл книги (EPUB, FB2, MOBI и т.д.) "
-            "или укажите URL книги после команды /upload"
+            get_text("prompt_upload", auth.get_language(update.effective_user.id))
         )
 
     # Остальная логика обработки загрузки без изменений...
@@ -453,28 +418,63 @@ async def add_user_handler(update: Update, context: CallbackContext) -> None:
 
     if not context.args:
         await (update.message if update.message else update.edited_message
-               ).reply_text("Использование: /add <user_id>")
+               ).reply_text(get_text("add_usage", auth.get_language(update.effective_user.id)))
         return reset_last_command(context)
 
     new_user_id = context.args[0]
     if not new_user_id.isdigit():
         await (update.message if update.message else update.edited_message
-               ).reply_text("ID пользователя должен быть числом")
+               ).reply_text(get_text("add_id_number", auth.get_language(update.effective_user.id)))
         return reset_last_command(context)
 
     # Проверяем, есть ли уже такой пользователь
     if auth.is_authorized(new_user_id):
         await (update.message if update.message else update.edited_message).reply_text(
-            f"Пользователь {new_user_id} уже есть в списке авторизованных"
+            get_text("already_authorized", auth.get_language(update.effective_user.id), user_id=new_user_id)
         )
         return reset_last_command(context)
 
     if auth.add_authorized_user(new_user_id):
         await (update.message if update.message else update.edited_message
-               ).reply_text(f"✅ Пользователь {new_user_id} успешно добавлен")
+               ).reply_text(get_text("add_success", auth.get_language(update.effective_user.id), user_id=new_user_id))
     else:
         await (update.message if update.message else update.edited_message
-               ).reply_text("Произошла ошибка при добавлении пользователя")
+               ).reply_text(get_text("add_error", auth.get_language(update.effective_user.id)))
+
+
+LANGUAGE_SELECT = 10001  # новое состояние для выбора языка
+
+
+@permission_required()
+async def language_handler(update: Update, context: CallbackContext) -> int:
+    """Обработка команды /language - выбор языка"""
+    keyboard = [
+        [InlineKeyboardButton("🇷🇺 Русский", callback_data="setlang_ru"),
+         InlineKeyboardButton("🇬🇧 English", callback_data="setlang_en")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await (update.message if update.message else update.edited_message).reply_text(
+        get_text("language_select", auth.get_language(update.effective_user.id)),
+        reply_markup=reply_markup
+    )
+    return LANGUAGE_SELECT
+
+
+@permission_required()
+async def language_callback_handler(update: Update, context: CallbackContext) -> int:
+    """Обработка выбора языка через callback"""
+    query = update.callback_query
+    await query.answer()
+    user_id = update.effective_user.id
+    if query.data == "setlang_ru":
+        auth.set_language(user_id, "ru")
+        await query.edit_message_text(get_text("lang_set_ru", auth.get_language(user_id)))
+    elif query.data == "setlang_en":
+        auth.set_language(user_id, "en")
+        await query.edit_message_text(get_text("lang_set_en", auth.get_language(user_id)))
+    else:
+        await query.edit_message_text(get_text("lang_set_unknown", auth.get_language(user_id)))
+    return reset_search(context)
 
 # ==========================================================================
 
@@ -485,7 +485,7 @@ async def cancel_handler(update: Update, context: CallbackContext) -> int:
     """Отмена операции"""
     logger.debug("cancel_handler() start")
     await (update.message if update.message else update.edited_message
-           ).reply_text('Операция отменена.')
+           ).reply_text(get_text("operation_cancelled", auth.get_language(update.effective_user.id)))
     return reset_search(context)
 
 
@@ -495,7 +495,7 @@ async def error_handler(update: Update, context: CallbackContext) -> None:
     logger.error("Исключение при обработке сообщения:", exc_info=context.error)
     if update and update.message:
         await (update.message if update.message else update.edited_message
-               ).reply_text('😞 Произошла ошибка. Попробуйте еще раз.')
+               ).reply_text(get_text("error_occurred", auth.get_language(update.effective_user.id)))
 
 
 async def request_parameter(update: Update, context: CallbackContext, prompt: str) -> int:
@@ -596,5 +596,7 @@ def setup_handlers(application: Application):
     application.add_handler(CommandHandler("start", start_handler))
     application.add_handler(CommandHandler("help", start_handler))
     application.add_handler(CommandHandler("upload", upload_book_handler))
+    application.add_handler(CommandHandler("language", language_handler))
+    application.add_handler(CallbackQueryHandler(language_callback_handler, pattern="^setlang_"))
     application.add_handler(conversation_handler())
     application.add_error_handler(error_handler)

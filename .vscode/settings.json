@@ -10,6 +10,7 @@
   "python.envFile": "${workspaceFolder}/.env",
   "cSpell.words": [
 	"Мокаем",
+	"мультиязычности",
 	"Парсим",
 	"парсинга",
 	"предпросмотра",
@@ -17,7 +18,8 @@
 	"человекочитаемый",
 	"dotenv",
 	"levelname",
-	"mobi"
+	"mobi",
+	"noid"
 ],
 
   "python.testing.pytestEnabled": true,

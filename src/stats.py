@@ -3,6 +3,10 @@ import os
 import sqlite3
 from config import logger, BOOKS_IMPORT_DIR, CALIBRE_DB
 from utils import count_files_by_pattern
+from texts import get_text
+from auth import Auth
+
+auth = Auth()
 
 def get_stats() -> dict:
     """Возвращает статистику библиотеки"""
@@ -59,7 +63,7 @@ def get_stats() -> dict:
     logger.info("Статистика библиотеки: %s", stat)
     return stat
 
-def get_stats_message() -> str|None:
+def get_stats_message(lang=None) -> str|None:
     """Возвращает статистику библиотеки"""
     logger.debug("get_stats_message() start")
     message = ''
@@ -68,35 +72,48 @@ def get_stats_message() -> str|None:
         if not stats:
             logger.error("Не удалось получить статистику из базы данных")
             return None
-        message += (
-            "📊 Статистика библиотеки:\n\n"
-            f"📚 Книг: {stats.get('books', 0):,}\n"
-            f"✍️ Авторов: {stats.get('authors', 0):,}\n"
-            f"🏷️ Категорий: {stats.get('categories', 0):,}\n"
-            f"📖 Серий: {stats.get('series', 0):,}\n"
-            f"🌐 Языков: {stats.get('languages', 0):,}\n"
-        ).replace(',', ' ')
-        message += f"📁 Форматов: {len(stats.get('formats', {})):,}\n"
-        # Подробная статистика по форматам
+        lang = lang or 'ru'
+        message += get_text("stats_header", lang)
+        message += get_text(
+            "stats_books", lang, books=f"{stats.get('books', 0):,}".replace(',', ' ')
+        )
+        message += get_text(
+            "stats_authors", lang, authors=f"{stats.get('authors', 0):,}".replace(',', ' ')
+        )
+        message += get_text(
+            "stats_categories", lang, categories=f"{stats.get('categories', 0):,}".replace(',', ' ')
+        )
+        message += get_text(
+            "stats_series", lang, series=f"{stats.get('series', 0):,}".replace(',', ' ')
+        )
+        message += get_text(
+            "stats_languages", lang, languages=f"{stats.get('languages', 0):,}".replace(',', ' ')
+        )
+        message += get_text(
+            "stats_formats", lang, formats=f"{len(stats.get('formats', {})):,}".replace(',', ' ')
+        )
         if stats.get('formats'):
             for fmt, count in stats['formats'].items():
-                message += f"\t\t\t  - {fmt}: {count:,}\n".replace(',', ' ')
-
+                message += get_text(
+                    "stats_format_row", lang,
+                    fmt=fmt, count=f"{count:,}".replace(',', ' ')
+                )
         if BOOKS_IMPORT_DIR:
-            message += "\n📥 Импорт книг:\n"
-
-            stats = count_files_by_pattern(
+            message += get_text("stats_import_header", lang)
+            stats_queue = count_files_by_pattern(
                 os.path.join(BOOKS_IMPORT_DIR, "import/"),
                 '*.*'
             )
-            message += f"\t\t\t  - в очереди: {stats:,}\n".replace(',', ' ')
-
+            message += get_text(
+                "stats_import_queue", lang, count=f"{stats_queue:,}".replace(',', ' ')
+            )
             stats_error = count_files_by_pattern(
                 os.path.join(BOOKS_IMPORT_DIR, "import_error/"),
                 '*.*'
             )
-            message += f"\t\t\t  - ошибок: {stats_error:,}\n".replace(',', ' ')
-
+            message += get_text(
+                "stats_import_error", lang, count=f"{stats_error:,}".replace(',', ' ')
+            )
         return message
     except sqlite3.Error as e:
         logger.error("Ошибка базы данных при получении статистики: %s", str(e))
