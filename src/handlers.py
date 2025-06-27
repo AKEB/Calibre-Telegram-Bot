@@ -96,9 +96,7 @@ async def book_selected_handler(update: Update, context: CallbackContext) -> int
 
     reply_markup, text = book_selected(book)
 
-    await (
-        update.message if update.message else update.edited_message
-          ).reply_text(
+    await query.edit_message_text(
         text,
         parse_mode="HTML",
         reply_markup=reply_markup,

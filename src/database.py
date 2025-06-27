@@ -3,6 +3,7 @@ import os
 import subprocess
 import json
 import shlex
+import sqlite3
 from config import (logger, CALIBRE_DB, BOOKS_LIMIT_COUNT, RANDOM_BOOKS_COUNT,
                     CALIBRE_LIBRARY_URL, CALIBRE_LIBRARY_USER, CALIBRE_LIBRARY_PASS)
 
@@ -22,32 +23,63 @@ def search_books_calibredb(query, search_type='all'):
     """Поиск книг в базе данных Calibre"""
     logger.debug("search_books_calibredb() start")
 
-    # Базовые параметры команды
     base_cmd = [
         'calibredb', 'list',
         '--with-library', CALIBRE_LIBRARY_URL,
         '--username', CALIBRE_LIBRARY_USER,
         '--password', CALIBRE_LIBRARY_PASS,
         '--for-machine',
-        '--limit', str(BOOKS_LIMIT_COUNT),
         '--fields',
         'authors,title,languages,tags,comments,series,series_index,size,formats,publisher',
-        '--sort-by', 'series,series_index,title,author_sort,pubdate'
     ]
-
     # Добавляем параметры поиска в зависимости от типа
     if search_type == 'title':
+        base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
+        base_cmd.extend(['--sort-by', 'title'])
         base_cmd.extend(['--search', f'title:{query}'])
     elif search_type == 'author':
+        base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
+        base_cmd.extend(['--sort-by', 'author_sort'])
         base_cmd.extend(['--search', f'authors:{query}'])
     elif search_type == 'series':
+        base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
+        base_cmd.extend(['--sort-by', 'series,series_index'])
         base_cmd.extend(['--search', f'series:{query}'])
     elif search_type == 'id':
-        base_cmd.extend(['--search', f'id:{query}'])
+        base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
+        base_cmd.extend(['--sort-by', 'id'])
+        base_cmd.extend(['--search', f'id:={query}'])
     elif search_type == 'random':
-        base_cmd.extend(['--limit', f'{RANDOM_BOOKS_COUNT}'])  # Для случайных книг
-        base_cmd.extend(['--sort-by', 'random()'])
+        logger.info("Поиск случайных книг")
+        try:
+            conn = sqlite3.connect(f'file:{CALIBRE_DB}?mode=ro', uri=True)
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM books ORDER BY RANDOM() LIMIT ?", (RANDOM_BOOKS_COUNT,))
+            random_ids = cursor.fetchall()
+            logger.info("Случайные id книг: %s", random_ids)
+        except sqlite3.Error as e:
+            logger.error("Ошибка базы данных при выполнении запроса: %s", str(e))
+            return []
+        except (OSError, IOError) as e:
+            logger.error("Ошибка файловой системы при выполнении запроса: %s", str(e))
+            return []
+        finally:
+            if 'conn' in locals():
+                conn.close()
+        if not random_ids:
+            logger.error("Не удалось получить случайные id книг")
+            return []
+        random_ids = [rid[0] for rid in random_ids]
+        if not random_ids:
+            logger.error("Случайные id книг пусты")
+            return []
+        base_cmd.extend(['--limit', f'{RANDOM_BOOKS_COUNT}'])
+        search = ' or '.join([f'id:={rid}' for rid in random_ids])
+        base_cmd.extend(['--search', search])
+        base_cmd.extend(['--sort-by', 'title'])
     else:
+        base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
+        base_cmd.extend(['--sort-by', 'title,author_sort,pubdate'])
         base_cmd.extend(['--search', query])
 
     try:
