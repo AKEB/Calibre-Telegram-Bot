@@ -12,6 +12,7 @@ start: |
   - Search by book ID (/id <id>) - the ID can be found in the book message
   - Upload a book to the server (/upload) - send a book file or specify a URL
   - Library statistics (/stats) - shows the number of books, authors, etc.
+  - /language - change the interface language
   
   Admin commands:
   - Add a user to authorized (/add <user_id>) - for access management
