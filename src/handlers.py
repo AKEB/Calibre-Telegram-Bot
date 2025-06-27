@@ -130,7 +130,16 @@ async def format_selected_handler(update: Update, context: CallbackContext) -> i
     selected_format = query.data.split('_')[1]
     book = context.user_data['selected_book']
 
-    await query.edit_message_text(f"⏳ Подготавливаю книгу в формате {selected_format.upper()}...")
+    keyboard = []
+    keyboard.append([
+        InlineKeyboardButton("⬅️ Назад", callback_data="back")
+    ])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(
+        text=f"⏳ Подготавливаю книгу в формате {selected_format.upper()}...",
+        reply_markup=reply_markup,
+    )
 
     # Показываем статус "загружает документ"
     await context.bot.send_chat_action(
@@ -140,8 +149,12 @@ async def format_selected_handler(update: Update, context: CallbackContext) -> i
 
     message = await format_selected(book, selected_format, context, update.effective_chat.id)
 
-    await query.edit_message_text(message)
-    return reset_search(context)
+    await query.edit_message_text(
+        text=message,
+        reply_markup=reply_markup,
+    )
+    return FORMAT_SELECT
+    # return reset_search(context)
 
 
 @permission_required()
