@@ -1,34 +1,34 @@
 start: |
   📚 Welcome to the Calibre Library!
-
+  
   You can search for books by:
   - Title (/title <title>)
   - Author (/author <author>)
   - Series (/series <series>)
   - Any keyword (/search <query>) or just <query>
-
+  
   Other available commands:
   - /random - shows {RANDOM_BOOKS_COUNT} random books from the library
   - Search by book ID (/id <id>) - the ID can be found in the book message
   - Upload a book to the server (/upload) - send a book file or specify a URL
   - Library statistics (/stats) - shows the number of books, authors, etc.
-
+  
   Admin commands:
   - Add a user to authorized (/add <user_id>) - for access management
-
+  
   For help, use the /help command
-
+  
   📖 The library contains many books in different formats (EPUB, FB2, MOBI, etc.).
   You can download books in your preferred format.
-
+  
   If you have questions or suggestions, contact the administrator.
-
+  
   To start searching for books, use the /search command or just enter a query.
-
+  
   Example: /search Harry Potter
-
+  
   You can also just enter a text query without a command, and the bot will try to find books by your query.
-
+  
   Advanced search examples:
   - title:Harry Potter - search by title
   - title:=Harry Potter - exact title search
@@ -44,13 +44,13 @@ start: |
   - languages:=english - exact language search
   - formats:fb2 - search by format
   - formats:=fb2 - exact format search
-
+  
   You can also combine commands:
   - title:Harry Potter and author:J.K. Rowling - search by title and author
 access_denied: |
   ⛔ Access denied
-  Please contact the administrator for access
-  Your ID={user_id}
+        Please contact the administrator for access
+        Your ID={user_id}
 admin_only: "⛔ You do not have permission to execute this command."
 cancelled: "Cancelled."
 empty_value: "Please enter a non-empty value"
@@ -94,7 +94,7 @@ book_card: |
   {publisher_block}ID: {id}
   Genre: {tags}
   Description: <blockquote>{desc}</blockquote>
-
+  
   {download_block}
 book_download_block: |
   Choose a format to download:
@@ -109,7 +109,7 @@ send_error: "😞 An error occurred while sending the file."
 btn_next: "Next ➡️"
 search_found: |
   🔍 Found {total} books. Page {page}/{pages}
-
+  
   {books}
   Select a book or go to another page:
 search_id: "ID: {id}"
@@ -117,17 +117,14 @@ search_publisher: "{publisher}"
 search_size: "({size})"
 search_series: "📖 {series} [{series_index}]"
 search_genre: "Genre: {tags}"
-stats_header: |
-  📊 Library statistics:
-
+stats_header: "📊 Library statistics:\n\n"
 stats_books: "📚 Books: {books}\n"
 stats_authors: "✍️ Authors: {authors}\n"
 stats_categories: "🏷️ Categories: {categories}\n"
 stats_series: "📖 Series: {series}\n"
 stats_languages: "🌐 Languages: {languages}\n"
 stats_formats: "📁 Formats: {formats}\n"
-stats_format_row: "    - {fmt}: {count}\n"
-stats_import_header: |
-  📥 Book import:
-stats_import_queue: "    - in queue: {count}\n"
-stats_import_error: "    - errors: {count}\n"
+stats_format_row: "      - {fmt}: {count}\n"
+stats_import_header: "\n📥 Book import:\n"
+stats_import_queue: "      - in queue: {count}\n"
+stats_import_error: "      - errors: {count}\n"
