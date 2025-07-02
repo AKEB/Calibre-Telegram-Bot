@@ -36,15 +36,15 @@ def search_books_calibredb(query, search_type='all'):
     if search_type == 'title':
         base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
         base_cmd.extend(['--sort-by', 'title'])
-        base_cmd.extend(['--search', f'title:{query}'])
+        base_cmd.extend(['--search', f'title:"{query}"'])
     elif search_type == 'author':
         base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
         base_cmd.extend(['--sort-by', 'author_sort'])
-        base_cmd.extend(['--search', f'authors:{query}'])
+        base_cmd.extend(['--search', f'authors:"{query}"'])
     elif search_type == 'series':
         base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
         base_cmd.extend(['--sort-by', 'series,series_index'])
-        base_cmd.extend(['--search', f'series:{query}'])
+        base_cmd.extend(['--search', f'series:"{query}"'])
     elif search_type == 'id':
         base_cmd.extend(['--limit', f'{BOOKS_LIMIT_COUNT}'])
         base_cmd.extend(['--sort-by', 'id'])
