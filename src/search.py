@@ -33,7 +33,9 @@ def get_books_list_text(page_books, start_idx, lang) -> str:
         if book['languages']:
             books_text += f" (<i>{book['languages']}</i>)"
         books_text += "\n"
-        books_text += f"\t\t\t\t✍️ <i>{(book['author'] if len(book['author']) < 200 else book['author'][:200] + '...')}</i>\n"
+        books_text += f"\t\t\t\t✍️ <i>{(book['author']
+                                        if len(book['author']) < 200 else
+                                        book['author'][:200] + '...')}</i>\n"
         if book['id']:
             books_text += "\t\t\t\t" + get_text("search_id", lang, id=book['id'])
         if book['publisher']:
@@ -48,7 +50,9 @@ def get_books_list_text(page_books, start_idx, lang) -> str:
                 series_index=book['series_index']
             ) + "\n"
         if book['tags']:
-            books_text += "\t\t\t\t" + get_text("search_genre", lang, tags=(book['tags'] if len(book['tags']) < 50 else book['tags'][:50] + '...')) + "\n"
+            books_text += "\t\t\t\t" + get_text("search_genre", lang, tags=(
+                book['tags'] if len(book['tags']) < 50 else
+                book['tags'][:50] + '...')) + "\n"
         books_text += "\n"
     return books_text
 
