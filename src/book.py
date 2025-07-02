@@ -35,13 +35,13 @@ def get_book_text(book: dict, user_id) -> str:
     text = get_text(
         "book_card", lang,
         title=book['title'],
-        author=book['author'],
+        author=book['author'] if len(book['author']) < 200 else book['author'][:200] + '...',
         series=book['series'],
         series_index=book['series_index'],
         publisher_block=publisher_block,
         id=book['id'],
-        tags=book['tags'],
-        desc=book['text'][:500],
+        tags=book['tags'] if len(book['tags']) < 200 else book['tags'][:200] + '...',
+        desc=book['text'] if len(book['text']) < 500 else book['text'][:500] + '...',
         download_block=download_block
     )
     return text

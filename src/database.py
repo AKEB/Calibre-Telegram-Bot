@@ -109,12 +109,18 @@ def search_books_calibredb(query, search_type='all'):
             else:
                 tags_str = str(tags).replace(',', ', ')
 
+            # if len(tags_str) > 50:
+            #     tags_str = tags_str[:50] + '...'
+
             # Обработка авторов (может быть строкой с разделителями &)
             authors = book.get('authors', '')
             if isinstance(authors, str):
                 authors_str = authors.replace('&', ', ')
             else:
                 authors_str = ', '.join(authors)
+
+            # if len(authors_str) > 50:
+            #     authors_str = authors_str[:50] + '...'
 
             # Обработка языков (может быть списком или строкой)
             languages = book.get('languages', [])

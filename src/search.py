@@ -33,7 +33,7 @@ def get_books_list_text(page_books, start_idx, lang) -> str:
         if book['languages']:
             books_text += f" (<i>{book['languages']}</i>)"
         books_text += "\n"
-        books_text += f"\t\t\t\t✍️ <i>{book['author']}</i>\n"
+        books_text += f"\t\t\t\t✍️ <i>{(book['author'] if len(book['author']) < 200 else book['author'][:200] + '...')}</i>\n"
         if book['id']:
             books_text += "\t\t\t\t" + get_text("search_id", lang, id=book['id'])
         if book['publisher']:
@@ -48,7 +48,7 @@ def get_books_list_text(page_books, start_idx, lang) -> str:
                 series_index=book['series_index']
             ) + "\n"
         if book['tags']:
-            books_text += "\t\t\t\t" + get_text("search_genre", lang, tags=book['tags']) + "\n"
+            books_text += "\t\t\t\t" + get_text("search_genre", lang, tags=(book['tags'] if len(book['tags']) < 50 else book['tags'][:50] + '...')) + "\n"
         books_text += "\n"
     return books_text
 
@@ -121,6 +121,7 @@ async def perform_search(update: Update, context: CallbackContext) -> int:
     reply_markup, message_text = get_books_search_message_with_buttons(books, current_page, lang)
     if 'search_message_id' in context.user_data:
         try:
+            logger.warning("Message text: %s", message_text)
             await context.bot.edit_message_text(
                 chat_id=update.effective_chat.id,
                 message_id=context.user_data['search_message_id'],
