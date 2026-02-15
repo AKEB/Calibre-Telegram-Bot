@@ -4,6 +4,7 @@ import sqlite3
 import tempfile
 import subprocess
 from telegram.ext import CallbackContext
+from telegram.error import TimedOut
 from config import logger
 from config import CALIBRE_DB, BOOKS_DIR
 from texts import get_text
@@ -85,9 +86,13 @@ async def format_selected(
                 chat_id=chat_id,
                 document=f,
                 filename=f"{book['title']}.{selected_format}",
-                caption=f"📚 {book['title']}\n✍️ {book['author']}"
+                caption=f"📚 {book['title']}\n✍️ {book['author']}",
+                write_timeout=300
             )
         return get_text("send_success", lang, fmt=selected_format.upper())
+    except TimedOut:
+        logger.error("Timeout при отправке файла. Файл слишком большой или медленное соединение.")
+        return get_text("send_error", lang)
     except (OSError, IOError) as e:
         logger.error("Ошибка отправки файла: %s", str(e))
         return get_text("send_error", lang)
