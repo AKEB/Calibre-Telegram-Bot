@@ -82,16 +82,18 @@ async def format_selected(
         return get_text("prepare_failed", lang)
     try:
         with open(book_path, 'rb') as f:
-            await context.bot.send_document(
-                chat_id=chat_id,
-                document=f,
-                filename=f"{book['title']}.{selected_format}",
-                caption=f"📚 {book['title']}\n✍️ {book['author']}",
-                write_timeout=1800,
-                read_timeout=1800,
-                connect_timeout=1800,
-                pool_timeout=1800
-            )
+            file_data = f.read()
+
+        await context.bot.send_document(
+            chat_id=chat_id,
+            document=file_data,
+            filename=f"{book['title']}.{selected_format}",
+            caption=f"📚 {book['title']}\n✍️ {book['author']}",
+            write_timeout=1800,
+            read_timeout=1800,
+            connect_timeout=1800,
+            pool_timeout=1800
+        )
         return get_text("send_success", lang, fmt=selected_format.upper())
     except TimedOut:
         logger.error("Timeout при отправке файла. Файл слишком большой или медленное соединение.")
