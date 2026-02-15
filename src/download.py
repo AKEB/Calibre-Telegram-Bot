@@ -87,7 +87,10 @@ async def format_selected(
                 document=f,
                 filename=f"{book['title']}.{selected_format}",
                 caption=f"📚 {book['title']}\n✍️ {book['author']}",
-                write_timeout=300
+                write_timeout=600,
+                read_timeout=600,
+                connect_timeout=600,
+                pool_timeout=600
             )
         return get_text("send_success", lang, fmt=selected_format.upper())
     except TimedOut:
