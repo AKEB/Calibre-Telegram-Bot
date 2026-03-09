@@ -2,6 +2,7 @@
 
 import time
 from functools import wraps
+import subprocess
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LinkPreviewOptions
 from telegram.constants import ChatAction
 from telegram.ext import (
@@ -14,7 +15,7 @@ from telegram.ext import (
     ConversationHandler
 )
 from auth import Auth
-from config import logger, RANDOM_BOOKS_COUNT, CALIBRE_WEB_URL
+from config import logger, RANDOM_BOOKS_COUNT, CALIBRE_WEB_URL, BOOKS_DIR
 from config import (SEARCH, BOOK_SELECT, FORMAT_SELECT, REQUEST_SEARCH, REQUEST_TITLE,
                     REQUEST_AUTHOR, REQUEST_SERIES, REQUEST_ID, REQUEST_UPLOAD
                     )
@@ -339,6 +340,38 @@ async def random_handler(update: Update, context: CallbackContext) -> int:
     context.user_data['search_query'] = ' '.join(context.args)
     return await perform_search(update, context)
 
+@permission_required(True)
+async def fix_handler(update: Update, context: CallbackContext) -> int:
+    """Обработка правки прав на папку"""
+    logger.debug("fix_handler() start")
+
+    reset_last_command(context)
+    message = update.message if update.message else update.edited_message
+    lang = auth.get_language(update.effective_user.id)
+
+    try:
+        command = ['chown', '911:911', BOOKS_DIR]
+        logger.info("Executing command: %s", ' '.join(command))
+
+        result = subprocess.run(
+            command, check=True, capture_output=True, text=True, timeout=60
+        )
+
+        logger.info("chown command stdout: %s", result.stdout)
+        if result.stderr:
+            logger.warning("chown command stderr: %s", result.stderr)
+
+        await message.reply_text(get_text("fix_success", lang))
+
+    except FileNotFoundError:
+        await message.reply_text(get_text("fix_error_notfound", lang))
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        await message.reply_text(get_text("fix_error_process", lang, error=e.stderr or str(e)))
+    except Exception as e:
+        await message.reply_text(get_text("fix_error_unexpected", lang, error=str(e)))
+
+    return ConversationHandler.END
+
 
 @permission_required()
 async def id_handler(update: Update, context: CallbackContext) -> int:
@@ -533,6 +566,7 @@ def conversation_handler() -> ConversationHandler:
             CommandHandler('author', author_handler),
             CommandHandler('series', series_handler),
             CommandHandler('random', random_handler),
+            CommandHandler('fix', fix_handler),
             CommandHandler('id', id_handler),
             CommandHandler('upload', upload_book_handler),
             MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler)
@@ -553,6 +587,7 @@ def conversation_handler() -> ConversationHandler:
                 CommandHandler('author', author_handler),
                 CommandHandler('series', series_handler),
                 CommandHandler('random', random_handler),
+                CommandHandler('fix', fix_handler),
                 CommandHandler('id', id_handler),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler)
             ],
@@ -566,6 +601,7 @@ def conversation_handler() -> ConversationHandler:
                 CommandHandler('author', author_handler),
                 CommandHandler('series', series_handler),
                 CommandHandler('random', random_handler),
+                CommandHandler('fix', fix_handler),
                 CommandHandler('id', id_handler),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler)
             ],
