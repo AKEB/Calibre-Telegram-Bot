@@ -16,6 +16,7 @@ start: |
   
   Admin commands:
   - Add a user to authorized (/add <user_id>) - for access management
+  - Fix a folder permissions (/fix)
   
   For help, use the /help command
   
