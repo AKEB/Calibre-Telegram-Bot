@@ -566,7 +566,6 @@ def conversation_handler() -> ConversationHandler:
             CommandHandler('author', author_handler),
             CommandHandler('series', series_handler),
             CommandHandler('random', random_handler),
-            CommandHandler('fix', fix_handler),
             CommandHandler('id', id_handler),
             CommandHandler('upload', upload_book_handler),
             MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler)
@@ -587,7 +586,6 @@ def conversation_handler() -> ConversationHandler:
                 CommandHandler('author', author_handler),
                 CommandHandler('series', series_handler),
                 CommandHandler('random', random_handler),
-                CommandHandler('fix', fix_handler),
                 CommandHandler('id', id_handler),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler)
             ],
@@ -601,7 +599,6 @@ def conversation_handler() -> ConversationHandler:
                 CommandHandler('author', author_handler),
                 CommandHandler('series', series_handler),
                 CommandHandler('random', random_handler),
-                CommandHandler('fix', fix_handler),
                 CommandHandler('id', id_handler),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler)
             ],
@@ -630,6 +627,7 @@ def setup_handlers(application: Application):
     ))
     application.add_handler(CommandHandler("stats", stats_handler))
     application.add_handler(CommandHandler("add", add_user_handler))
+    application.add_handler(CommandHandler("fix", fix_handler))
     application.add_handler(CommandHandler("start", start_handler))
     application.add_handler(CommandHandler("help", start_handler))
     application.add_handler(CommandHandler("upload", upload_book_handler))
