@@ -357,18 +357,28 @@ async def fix_handler(update: Update, context: CallbackContext) -> int:
             command, check=True, capture_output=True, text=True, timeout=60
         )
 
-        logger.info("chown command stdout: %s", result.stdout)
+        logger.info("chown command stdout: %s", result.stdout.strip())
         if result.stderr:
-            logger.warning("chown command stderr: %s", result.stderr)
+            logger.warning("chown command stderr: %s", result.stderr.strip())
 
-        await message.reply_text(get_text("fix_success", lang))
+        reply_text = get_text("fix_success", lang) or "Permissions fixed successfully."
+        await message.reply_text(reply_text)
 
     except FileNotFoundError:
-        await message.reply_text(get_text("fix_error_notfound", lang))
+        reply_text = (
+            get_text("fix_error_notfound", lang) or "Error: 'chown' command not found."
+        )
+        await message.reply_text(reply_text)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        await message.reply_text(get_text("fix_error_process", lang, error=e.stderr or str(e)))
+        error_details = e.stderr or str(e)
+        reply_text = (
+            get_text("fix_error_process", lang, error=error_details)
+            or f"Error executing command: {error_details}"
+        )
+        await message.reply_text(reply_text)
     except Exception as e:
-        await message.reply_text(get_text("fix_error_unexpected", lang, error=str(e)))
+        reply_text = get_text("fix_error_unexpected", lang, error=str(e)) or f"An unexpected error occurred: {e}"
+        await message.reply_text(reply_text)
 
     return ConversationHandler.END
 
