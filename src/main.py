@@ -2,7 +2,8 @@
 """Бот для поиска и скачивания книг с сайта"""
 import sys
 from telegram.ext import Application
-from config import logger, check_config, print_config, TELEGRAM_BOT_TOKEN
+from telegram.request import HTTPXRequest
+from config import logger, check_config, print_config, TELEGRAM_BOT_TOKEN, TELEGRAM_PROXY_URL
 
 from database import check_db_permissions
 from handlers import setup_handlers
@@ -21,7 +22,12 @@ def main() -> None:
         logger.critical("Проблемы с доступом к базе данных. Проверьте права доступа.")
         sys.exit(1)
 
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    request = HTTPXRequest(
+        proxy=TELEGRAM_PROXY_URL,
+        connection_pool_size=8
+    )
+
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).request(request).build()
 
     setup_handlers(application)
 

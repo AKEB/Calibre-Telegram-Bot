@@ -42,6 +42,8 @@ logger = logging.getLogger(__name__)
 TELEGRAM_BOT_TOKEN = get_env_var("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_ADMIN_USERS = get_env_var("TELEGRAM_ADMIN_USERS", "", split=True)
 
+TELEGRAM_PROXY_URL = get_env_var("TELEGRAM_PROXY_URL", None)
+
 CALIBRE_DB = get_env_var("CALIBRE_DB", "/books/metadata.db")
 BOOKS_DIR = get_env_var("BOOKS_DIR", "/books/")
 BOOKS_IMPORT_DIR = get_env_var("BOOKS_IMPORT_DIR", None)
