@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Бот для поиска и скачивания книг с сайта"""
 import sys
-import httpx
 from telegram.ext import Application
+from telegram.request import HTTPXRequest
+
 from config import logger, check_config, print_config, TELEGRAM_BOT_TOKEN, TELEGRAM_PROXY_URL
 
 from database import check_db_permissions
@@ -22,12 +23,13 @@ def main() -> None:
         logger.critical("Проблемы с доступом к базе данных. Проверьте права доступа.")
         sys.exit(1)
 
-    http_client = httpx.AsyncClient(
+    request = HTTPXRequest(
         proxy=TELEGRAM_PROXY_URL,
-        timeout=10.0
+        read_timeout=1800.0,
+        connect_timeout=10.0,
+        write_timeout=1800.0
     )
-
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).httpx_client(http_client).build()  # pylint: disable=no-member
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).request(request).build()
 
     setup_handlers(application)
 
