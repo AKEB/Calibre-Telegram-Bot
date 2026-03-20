@@ -17,13 +17,13 @@ class TestMain(unittest.TestCase):
     @patch('main.print_config')
     @patch('main.check_db_permissions', return_value=True)
     @patch('main.setup_handlers')
-    @patch('main.HTTPXRequest')
+    @patch('main.httpx.AsyncClient')
     @patch('main.Application')
     @patch('main.check_config', return_value=True)
     def test_main_success(self,
                           mock_check_config,
                           mock_app,
-                          mock_httpx_request,
+                          mock_httpx_client,
                           mock_setup,
                           mock_check_db_permissions,
                           mock_print_config,
@@ -31,7 +31,7 @@ class TestMain(unittest.TestCase):
         mock_builder = MagicMock()
         mock_app.builder.return_value = mock_builder
         mock_builder.token.return_value = mock_builder
-        mock_builder.request.return_value = mock_builder
+        mock_builder.httpx_client.return_value = mock_builder
         mock_builder.build.return_value = mock_app
         mock_app.run_polling.return_value = None
         main.main()
